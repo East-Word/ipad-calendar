@@ -37,15 +37,22 @@ export default async function handler(req, res) {
         }),
       });
       const data = await response.json();
-      return res.json(data);
+      if (data.access_token) {
+        const params = new URLSearchParams({
+          access_token: data.access_token,
+          refresh_token: data.refresh_token || '',
+          expires_in: data.expires_in || 3600,
+        });
+        return res.redirect(302, `/?${params.toString()}`);
+      }
+      return res.status(400).json({ error: 'Token exchange failed', detail: data });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }
   }
 
-  if (action === 'refresh' && req.method === 'POST') {
+  if (action === 'refresh') {
     try {
-      const { refresh_token } = req.body || {};
       const body = await new Promise((resolve) => {
         let raw = '';
         req.on('data', chunk => raw += chunk);
