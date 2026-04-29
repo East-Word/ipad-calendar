@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>iPad Calendar</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1a73e8;
+    --blue-light: #e8f0fe;
+    --blue-hover: #1557b0;
+    --gray-100: #f1f3f4;
+    --gray-200: #e8eaed;
+    --gray-300: #dadce0;
+    --gray-600: #80868b;
+    --gray-700: #5f6368;
+    --gray-900: #202124;
+    --white: #ffffff;
+    --sidebar-width: 240px;
+    --header-height: 64px;
+    --red: #d93025;
+    --green: #0f9d58;
+    --yellow: #f4b400;
+    --teal: #009688;
+    --purple: #9c27b0;
+    --pink: #e91e63;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Roboto', sans-serif;
+    background: var(--white);
+    color: var(--gray-900);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Header */
+  #header {
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--gray-300);
+    gap: 16px;
+    flex-shrink: 0;
+    background: var(--white);
+    z-index: 100;
+  }
+  #menu-btn {
+    width: 40px; height: 40px;
+    border: none; background: none; cursor: pointer;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gray-700);
+  }
+  #menu-btn:hover { background: var(--gray-100); }
+  #logo {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--gray-700);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  #logo span { color: var(--blue); }
+  #today-btn {
+    border: 1px solid var(--gray-300);
+    background: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: 'Google Sans', sans-serif;
+    color: var(--gray-700);
+  }
+  #today-btn:hover { background: var(--gray-100); }
+  #nav-btns { display: flex; gap: 0; }
+  .nav-btn {
+    width: 36px; height: 36px;
+    border: none; background: none; cursor: pointer;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gray-700); font-size: 20px;
+  }
+  .nav-btn:hover { background: var(--gray-100); }
+  #current-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--gray-700);
+    flex: 1;
+  }
+  #view-btns {
+    display: flex;
+    border: 1px solid var(--gray-300);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .view-btn {
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: 'Google Sans', sans-serif;
+    color: var(--gray-700);
+    border-right: 1px solid var(--gray-300);
+  }
+  .view-btn:last-child { border-right: none; }
+  .view-btn:hover { background: var(--gray-100); }
+  .view-btn.active { background: var(--blue-light); color: var(--blue); }
+  #auth-btn {
+    background: var(--blue);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: 'Google Sans', sans-serif;
+    font-weight: 500;
+  }
+  #auth-btn:hover { background: var(--blue-hover); }
+  #auth-status {
+    font-size: 13px;
+    color: var(--gray-600);
+  }
+
+  /* Main */
+  #main { display: flex; flex: 1; overflow: hidden; }
+
+  /* Sidebar */
+  #sidebar {
+    width: var(--sidebar-width);
+    padding: 12px;
+    border-right: 1px solid var(--gray-300);
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  #add-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.1);
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Google Sans', sans-serif;
+    color: var(--gray-700);
+    width: 100%;
+    margin-bottom: 16px;
+  }
+  #add-btn:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.15); }
+  #add-btn .plus { font-size: 22px; color: var(--blue); font-weight: 300; }
+
+  /* Mini Calendar */
+  .mini-cal { margin-bottom: 16px; }
+  .mini-cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+    margin-bottom: 8px;
+  }
+  .mini-cal-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 14px;
+    color: var(--gray-700);
+  }
+  .mini-nav {
+    width: 28px; height: 28px;
+    border: none; background: none; cursor: pointer;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gray-600); font-size: 16px;
+  }
+  .mini-nav:hover { background: var(--gray-100); }
+  .mini-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+  .mini-dow {
+    text-align: center;
+    font-size: 11px;
+    color: var(--gray-600);
+    padding: 4px 0;
+    font-weight: 500;
+  }
+  .mini-day {
+    text-align: center;
+    font-size: 12px;
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gray-900);
+  }
+  .mini-day:hover { background: var(--gray-100); }
+  .mini-day.today { background: var(--blue); color: white; font-weight: 500; }
+  .mini-day.selected { background: var(--blue-light); color: var(--blue); font-weight: 500; }
+  .mini-day.other-month { color: var(--gray-600); }
+
+  /* Content area */
+  #content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+  /* Month View */
+  #month-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .month-dow-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-bottom: 1px solid var(--gray-300);
+    flex-shrink: 0;
+  }
+  .month-dow {
+    text-align: center;
+    font-size: 11px;
+    color: var(--gray-600);
+    padding: 8px 0;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+  }
+  .month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    flex: 1;
+    overflow: hidden;
+  }
+  .month-cell {
+    border-right: 1px solid var(--gray-300);
+    border-bottom: 1px solid var(--gray-300);
+    padding: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    min-height: 0;
+  }
+  .month-cell:nth-child(7n) { border-right: none; }
+  .month-cell:hover { background: var(--gray-100); }
+  .month-cell.other-month .cell-day { color: var(--gray-600); }
+  .cell-day {
+    font-size: 12px;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    margin-bottom: 2px;
+    font-family: 'Google Sans', sans-serif;
+  }
+  .month-cell.today .cell-day {
+    background: var(--blue);
+    color: white;
+    font-weight: 500;
+  }
+  .month-event {
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-bottom: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    color: white;
+    font-weight: 500;
+  }
+  .month-event:hover { filter: brightness(0.9); }
+  .more-events {
+    font-size: 11px;
+    color: var(--gray-700);
+    padding: 1px 4px;
+    cursor: pointer;
+  }
+  .more-events:hover { background: var(--gray-100); border-radius: 3px; }
+
+  /* Week View */
+  #week-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .week-header {
+    display: grid;
+    grid-template-columns: 52px repeat(7, 1fr);
+    border-bottom: 1px solid var(--gray-300);
+    flex-shrink: 0;
+  }
+  .week-header-cell {
+    text-align: center;
+    padding: 8px 0;
+    border-right: 1px solid var(--gray-300);
+  }
+  .week-header-cell:first-child { border-right: 1px solid var(--gray-300); }
+  .week-dow {
+    font-size: 11px;
+    color: var(--gray-600);
+    letter-spacing: 0.8px;
+    font-weight: 500;
+  }
+  .week-date {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--gray-700);
+    width: 46px; height: 46px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    margin: 0 auto;
+    cursor: pointer;
+  }
+  .week-date:hover { background: var(--gray-100); }
+  .week-date.today { background: var(--blue); color: white; }
+  .week-body {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: 52px repeat(7, 1fr);
+  }
+  .week-time-col { position: relative; }
+  .week-time-label {
+    font-size: 10px;
+    color: var(--gray-600);
+    text-align: right;
+    padding-right: 8px;
+    height: 48px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding-top: 2px;
+    margin-top: -6px;
+  }
+  .week-day-col {
+    border-right: 1px solid var(--gray-300);
+    position: relative;
+    cursor: pointer;
+  }
+  .week-day-col:last-child { border-right: none; }
+  .week-hour-line {
+    height: 48px;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .week-event {
+    position: absolute;
+    left: 2px; right: 2px;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    overflow: hidden;
+    z-index: 1;
+  }
+  .week-event:hover { filter: brightness(0.9); z-index: 2; }
+
+  /* Schedule View */
+  #schedule-view { flex: 1; overflow-y: auto; padding: 0; }
+  .schedule-day {
+    display: flex;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .schedule-date-col {
+    width: 80px;
+    padding: 16px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .schedule-dow {
+    font-size: 11px;
+    color: var(--gray-600);
+    font-weight: 500;
+    letter-spacing: 0.8px;
+  }
+  .schedule-day-num {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 26px;
+    color: var(--gray-700);
+    cursor: pointer;
+    width: 46px; height: 46px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    margin-left: auto;
+  }
+  .schedule-day-num:hover { background: var(--gray-100); }
+  .schedule-day-num.today { background: var(--blue); color: white; }
+  .schedule-events { flex: 1; padding: 8px 0; }
+  .schedule-event {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin: 2px 8px;
+  }
+  .schedule-event:hover { background: var(--gray-100); }
+  .schedule-event-color {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-right: 12px;
+  }
+  .schedule-event-time {
+    font-size: 12px;
+    color: var(--gray-600);
+    width: 100px;
+    flex-shrink: 0;
+  }
+  .schedule-event-title {
+    font-size: 14px;
+    color: var(--gray-900);
+    flex: 1;
+  }
+  .schedule-no-events {
+    padding: 16px;
+    color: var(--gray-600);
+    font-size: 14px;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal {
+    background: white;
+    border-radius: 8px;
+    width: 480px;
+    max-width: 95vw;
+    box-shadow: 0 11px 15px rgba(0,0,0,0.2), 0 24px 38px rgba(0,0,0,0.14);
+    overflow: hidden;
+  }
+  .modal-header {
+    background: var(--blue);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-header h2 {
+    color: white;
+    font-family: 'Google Sans', sans-serif;
+    font-weight: 400;
+    font-size: 20px;
+  }
+  .modal-close {
+    background: none; border: none; color: white;
+    font-size: 24px; cursor: pointer; width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+  }
+  .modal-close:hover { background: rgba(255,255,255,0.2); }
+  .modal-body { padding: 24px; }
+  .form-row { margin-bottom: 20px; }
+  .form-label {
+    font-size: 12px;
+    color: var(--gray-600);
+    margin-bottom: 6px;
+    display: block;
+    font-weight: 500;
+  }
+  .form-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--gray-300);
+    padding: 8px 0;
+    font-size: 16px;
+    font-family: 'Roboto', sans-serif;
+    outline: none;
+    color: var(--gray-900);
+  }
+  .form-input:focus { border-bottom-color: var(--blue); }
+  .form-input[type="date"],
+  .form-input[type="time"] {
+    font-family: 'Roboto', sans-serif;
+  }
+  .form-row-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .color-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+  .color-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: transform 0.1s;
+  }
+  .color-dot:hover { transform: scale(1.1); }
+  .color-dot.selected { border-color: var(--gray-900); }
+  .modal-footer {
+    padding: 12px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid var(--gray-200);
+  }
+  .btn {
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: 'Google Sans', sans-serif;
+    font-weight: 500;
+    border: none;
+  }
+  .btn-text { background: none; color: var(--blue); }
+  .btn-text:hover { background: var(--blue-light); }
+  .btn-primary { background: var(--blue); color: white; }
+  .btn-primary:hover { background: var(--blue-hover); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-danger:hover { filter: brightness(0.9); }
+
+  /* Event detail popup */
+  .event-popup {
+    position: fixed;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.2);
+    width: 340px;
+    z-index: 500;
+    overflow: hidden;
+  }
+  .event-popup-header {
+    padding: 16px 16px 12px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+  .popup-icon-btn {
+    width: 32px; height: 32px;
+    border: none; background: none; cursor: pointer;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gray-700); font-size: 18px;
+  }
+  .popup-icon-btn:hover { background: var(--gray-100); }
+  .event-popup-body { padding: 0 16px 16px; }
+  .popup-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 20px;
+    color: var(--gray-900);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .popup-color-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .popup-detail {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--gray-700);
+    margin-bottom: 8px;
+  }
+  .popup-icon { font-size: 18px; color: var(--gray-600); }
+
+  /* Login screen */
+  #login-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    background: var(--gray-100);
+  }
+  .login-card {
+    background: white;
+    border-radius: 8px;
+    padding: 48px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+  }
+  .login-icon { font-size: 64px; margin-bottom: 16px; }
+  .login-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 24px;
+    color: var(--gray-900);
+    margin-bottom: 8px;
+  }
+  .login-desc {
+    font-size: 14px;
+    color: var(--gray-600);
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+  .google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    font-family: 'Google Sans', sans-serif;
+    font-weight: 500;
+    width: 100%;
+  }
+  .google-btn:hover { background: var(--blue-hover); }
+
+  .hidden { display: none !important; }
+
+  /* Loading */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: var(--gray-600);
+    font-size: 14px;
+    gap: 12px;
+  }
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid var(--gray-300);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 768px) {
+    #sidebar { display: none; }
+    .view-btn { padding: 8px 10px; font-size: 12px; }
+    #current-title { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div id="header">
+  <button id="menu-btn">☰</button>
+  <div id="logo">📅 <span>iPad</span>カレンダー</div>
+  <button id="today-btn" onclick="goToday()">今日</button>
+  <div id="nav-btns">
+    <button class="nav-btn" onclick="navigate(-1)">‹</button>
+    <button class="nav-btn" onclick="navigate(1)">›</button>
+  </div>
+  <div id="current-title"></div>
+  <div id="view-btns">
+    <button class="view-btn active" onclick="setView('month')" id="btn-month">月</button>
+    <button class="view-btn" onclick="setView('week')" id="btn-week">週</button>
+    <button class="view-btn" onclick="setView('schedule')" id="btn-schedule">予定</button>
+  </div>
+  <span id="auth-status"></span>
+  <button id="auth-btn" onclick="startAuth()">Googleでログイン</button>
+</div>
+
+<!-- Main -->
+<div id="main">
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <button id="add-btn" onclick="openAddModal()">
+      <span class="plus">＋</span> 作成
+    </button>
+    <div class="mini-cal" id="mini-cal"></div>
+  </div>
+
+  <!-- Content -->
+  <div id="content">
+    <!-- Login Screen -->
+    <div id="login-screen">
+      <div class="login-card">
+        <div class="login-icon">📅</div>
+        <div class="login-title">iPadカレンダー</div>
+        <div class="login-desc">Googleカレンダーにログインして、予定の確認・追加・編集ができます。</div>
+        <button class="google-btn" onclick="startAuth()">
+          🔐 Googleでログイン
+        </button>
+      </div>
+    </div>
+
+    <!-- Month View -->
+    <div id="month-view" class="hidden">
+      <div class="month-dow-row">
+        <div class="month-dow">日</div><div class="month-dow">月</div>
+        <div class="month-dow">火</div><div class="month-dow">水</div>
+        <div class="month-dow">木</div><div class="month-dow">金</div>
+        <div class="month-dow">土</div>
+      </div>
+      <div class="month-grid" id="month-grid"></div>
+    </div>
+
+    <!-- Week View -->
+    <div id="week-view" class="hidden">
+      <div class="week-header" id="week-header"></div>
+      <div class="week-body" id="week-body"></div>
+    </div>
+
+    <!-- Schedule View -->
+    <div id="schedule-view" class="hidden" id="schedule-list"></div>
+  </div>
+</div>
+
+<!-- Add/Edit Event Modal -->
+<div class="modal-overlay hidden" id="event-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">予定を作成</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <input class="form-input" type="text" id="event-title" placeholder="タイトルを追加" style="font-size:20px;">
+      </div>
+      <div class="form-row form-row-inline">
+        <div>
+          <label class="form-label">開始日</label>
+          <input class="form-input" type="date" id="event-start-date">
+        </div>
+        <div>
+          <label class="form-label">開始時刻</label>
+          <input class="form-input" type="time" id="event-start-time">
+        </div>
+      </div>
+      <div class="form-row form-row-inline">
+        <div>
+          <label class="form-label">終了日</label>
+          <input class="form-input" type="date" id="event-end-date">
+        </div>
+        <div>
+          <label class="form-label">終了時刻</label>
+          <input class="form-input" type="time" id="event-end-time">
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">メモ</label>
+        <input class="form-input" type="text" id="event-desc" placeholder="メモを追加">
+      </div>
+      <div class="form-row">
+        <label class="form-label">色</label>
+        <div class="color-picker" id="color-picker"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-text" onclick="closeModal()">キャンセル</button>
+      <button class="btn btn-danger hidden" id="delete-btn" onclick="deleteEvent()">削除</button>
+      <button class="btn btn-primary" onclick="saveEvent()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event Popup -->
+<div class="event-popup hidden" id="event-popup">
+  <div class="event-popup-header">
+    <button class="popup-icon-btn" onclick="openEditFromPopup()" title="編集">✏️</button>
+    <button class="popup-icon-btn" onclick="deleteEventFromPopup()" title="削除">🗑️</button>
+    <button class="popup-icon-btn" onclick="closePopup()">✕</button>
+  </div>
+  <div class="event-popup-body">
+    <div class="popup-title">
+      <span class="popup-color-dot" id="popup-color"></span>
+      <span id="popup-title-text"></span>
+    </div>
+    <div class="popup-detail">
+      <span class="popup-icon">🕐</span>
+      <span id="popup-time"></span>
+    </div>
+    <div class="popup-detail hidden" id="popup-desc-row">
+      <span class="popup-icon">📝</span>
+      <span id="popup-desc"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = [
+  {id:'tomato', hex:'#d50000', name:'トマト'},
+  {id:'flamingo', hex:'#e67c73', name:'フラミンゴ'},
+  {id:'tangerine', hex:'#f4511e', name:'タンジェリン'},
+  {id:'banana', hex:'#f6bf26', name:'バナナ'},
+  {id:'sage', hex:'#33b679', name:'セージ'},
+  {id:'basil', hex:'#0f9d58', name:'バジル'},
+  {id:'peacock', hex:'#039be5', name:'ピーコック'},
+  {id:'blueberry', hex:'#3f51b5', name:'ブルーベリー'},
+  {id:'lavender', hex:'#7986cb', name:'ラベンダー'},
+  {id:'grape', hex:'#8e24aa', name:'グレープ'},
+  {id:'graphite', hex:'#616161', name:'グラファイト'},
+];
+
+let state = {
+  view: 'month',
+  currentDate: new Date(),
+  today: new Date(),
+  events: [],
+  accessToken: null,
+  refreshToken: null,
+  tokenExpiry: null,
+  editingEvent: null,
+  selectedColor: 'blueberry',
+  loading: false,
+};
+
+// ===== AUTH =====
+const BASE_URL = window.location.origin;
+
+async function startAuth() {
+  try {
+    const res = await fetch(`${BASE_URL}/api/auth?action=url`);
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert('認証URLの取得に失敗しました。環境変数の設定を確認してください。');
+    }
+  } catch(e) {
+    alert('サーバーに接続できません: ' + e.message);
+  }
+}
+
+async function handleCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if (!code) return false;
+  try {
+    const res = await fetch(`${BASE_URL}/api/auth?action=token&code=${encodeURIComponent(code)}`);
+    const data = await res.json();
+    if (data.access_token) {
+      state.accessToken = data.access_token;
+      state.refreshToken = data.refresh_token;
+      state.tokenExpiry = Date.now() + (data.expires_in * 1000);
+      localStorage.setItem('gc_refresh', data.refresh_token);
+      window.history.replaceState({}, '', '/');
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+async function refreshAccessToken() {
+  const rt = state.refreshToken || localStorage.getItem('gc_refresh');
+  if (!rt) return false;
+  try {
+    const res = await fetch(`${BASE_URL}/api/auth?action=refresh`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({refresh_token: rt})
+    });
+    const data = await res.json();
+    if (data.access_token) {
+      state.accessToken = data.access_token;
+      state.tokenExpiry = Date.now() + (data.expires_in * 1000);
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+async function ensureToken() {
+  if (state.tokenExpiry && Date.now() < state.tokenExpiry - 60000) return true;
+  return await refreshAccessToken();
+}
+
+// ===== GOOGLE CALENDAR API =====
+async function fetchEvents() {
+  if (!await ensureToken()) return;
+  const d = new Date(state.currentDate);
+  let start, end;
+  if (state.view === 'month') {
+    start = new Date(d.getFullYear(), d.getMonth(), 1);
+    end = new Date(d.getFullYear(), d.getMonth() + 2, 0);
+  } else if (state.view === 'week') {
+    const day = d.getDay();
+    start = new Date(d); start.setDate(d.getDate() - day);
+    end = new Date(start); end.setDate(start.getDate() + 7);
+  } else {
+    start = new Date(d.getFullYear(), d.getMonth(), 1);
+    end = new Date(d.getFullYear(), d.getMonth() + 3, 0);
+  }
+  try {
+    const res = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events?` +
+      `timeMin=${start.toISOString()}&timeMax=${end.toISOString()}&singleEvents=true&orderBy=startTime&maxResults=500`,
+      { headers: { Authorization: `Bearer ${state.accessToken}` } }
+    );
+    const data = await res.json();
+    state.events = (data.items || []).map(e => ({
+      id: e.id,
+      title: e.summary || '（タイトルなし）',
+      start: e.start.dateTime || e.start.date,
+      end: e.end.dateTime || e.end.date,
+      allDay: !e.start.dateTime,
+      color: getColorHex(e.colorId) || '#3f51b5',
+      colorId: e.colorId || 'blueberry',
+      desc: e.description || '',
+    }));
+    render();
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function getColorHex(colorId) {
+  const c = COLORS.find(c => c.id === colorId);
+  return c ? c.hex : null;
+}
+
+async function createEvent(ev) {
+  if (!await ensureToken()) return;
+  const body = {
+    summary: ev.title,
+    description: ev.desc,
+    colorId: ev.colorId,
+    start: ev.allDay ? {date: ev.startDate} : {dateTime: `${ev.startDate}T${ev.startTime}:00`, timeZone: 'Asia/Tokyo'},
+    end: ev.allDay ? {date: ev.endDate} : {dateTime: `${ev.endDate}T${ev.endTime}:00`, timeZone: 'Asia/Tokyo'},
+  };
+  await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+    method: 'POST',
+    headers: {Authorization: `Bearer ${state.accessToken}`, 'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+  await fetchEvents();
+}
+
+async function updateEvent(id, ev) {
+  if (!await ensureToken()) return;
+  const body = {
+    summary: ev.title,
+    description: ev.desc,
+    colorId: ev.colorId,
+    start: ev.allDay ? {date: ev.startDate} : {dateTime: `${ev.startDate}T${ev.startTime}:00`, timeZone: 'Asia/Tokyo'},
+    end: ev.allDay ? {date: ev.endDate} : {dateTime: `${ev.endDate}T${ev.endTime}:00`, timeZone: 'Asia/Tokyo'},
+  };
+  await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`, {
+    method: 'PUT',
+    headers: {Authorization: `Bearer ${state.accessToken}`, 'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+  await fetchEvents();
+}
+
+async function deleteEventById(id) {
+  if (!await ensureToken()) return;
+  await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`, {
+    method: 'DELETE',
+    headers: {Authorization: `Bearer ${state.accessToken}`}
+  });
+  await fetchEvents();
+}
+
+// ===== RENDER =====
+function render() {
+  renderMiniCal();
+  updateTitle();
+  document.getElementById('month-view').classList.toggle('hidden', state.view !== 'month');
+  document.getElementById('week-view').classList.toggle('hidden', state.view !== 'week');
+  document.getElementById('schedule-view').classList.toggle('hidden', state.view !== 'schedule');
+  if (state.view === 'month') renderMonth();
+  else if (state.view === 'week') renderWeek();
+  else renderSchedule();
+}
+
+function updateTitle() {
+  const d = state.currentDate;
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  if (state.view === 'month') {
+    document.getElementById('current-title').textContent = `${d.getFullYear()}年 ${months[d.getMonth()]}`;
+  } else if (state.view === 'week') {
+    const day = d.getDay();
+    const sun = new Date(d); sun.setDate(d.getDate() - day);
+    const sat = new Date(sun); sat.setDate(sun.getDate() + 6);
+    document.getElementById('current-title').textContent =
+      `${sun.getFullYear()}年 ${months[sun.getMonth()]} ${sun.getDate()}日 – ${sat.getDate()}日`;
+  } else {
+    document.getElementById('current-title').textContent = `${d.getFullYear()}年 ${months[d.getMonth()]}`;
+  }
+}
+
+function renderMiniCal() {
+  const d = state.currentDate;
+  const year = d.getFullYear(), month = d.getMonth();
+  const first = new Date(year, month, 1).getDay();
+  const days = new Date(year, month + 1, 0).getDate();
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const today = state.today;
+  let html = `<div class="mini-cal-header">
+    <button class="mini-nav" onclick="miniNav(-1)">‹</button>
+    <span class="mini-cal-title">${year}年 ${months[month]}</span>
+    <button class="mini-nav" onclick="miniNav(1)">›</button>
+  </div>
+  <div class="mini-grid">
+    <div class="mini-dow">日</div><div class="mini-dow">月</div>
+    <div class="mini-dow">火</div><div class="mini-dow">水</div>
+    <div class="mini-dow">木</div><div class="mini-dow">金</div>
+    <div class="mini-dow">土</div>`;
+  for (let i = 0; i < first; i++) html += '<div></div>';
+  for (let i = 1; i <= days; i++) {
+    const isToday = today.getFullYear()===year && today.getMonth()===month && today.getDate()===i;
+    html += `<div class="mini-day${isToday?' today':''}" onclick="goToDate(${year},${month},${i})">${i}</div>`;
+  }
+  html += '</div>';
+  document.getElementById('mini-cal').innerHTML = html;
+}
+
+function renderMonth() {
+  const d = state.currentDate;
+  const year = d.getFullYear(), month = d.getMonth();
+  const first = new Date(year, month, 1).getDay();
+  const days = new Date(year, month + 1, 0).getDate();
+  const today = state.today;
+  let html = '';
+  const totalCells = Math.ceil((first + days) / 7) * 7;
+  for (let i = 0; i < totalCells; i++) {
+    const dayNum = i - first + 1;
+    const isCurrentMonth = dayNum >= 1 && dayNum <= days;
+    const actualDate = new Date(year, month, dayNum);
+    const dateStr = fmtDate(actualDate);
+    const isToday = sameDay(actualDate, today);
+    const dayEvents = state.events.filter(e => eventOnDate(e, dateStr));
+    html += `<div class="month-cell${isCurrentMonth?'':' other-month'}${isToday?' today':''}" onclick="cellClick('${dateStr}')">
+      <div class="cell-day">${actualDate.getDate()}</div>`;
+    dayEvents.slice(0,3).forEach(e => {
+      html += `<div class="month-event" style="background:${e.color}" onclick="event.stopPropagation();showPopup('${e.id}',event)">${e.title}</div>`;
+    });
+    if (dayEvents.length > 3) html += `<div class="more-events">他${dayEvents.length-3}件</div>`;
+    html += '</div>';
+  }
+  document.getElementById('month-grid').innerHTML = html;
+}
+
+function renderWeek() {
+  const d = state.currentDate;
+  const day = d.getDay();
+  const sun = new Date(d); sun.setDate(d.getDate() - day);
+  const dows = ['日','月','火','水','木','金','土'];
+  const today = state.today;
+  let headerHtml = '<div class="week-header-cell"></div>';
+  for (let i = 0; i < 7; i++) {
+    const dd = new Date(sun); dd.setDate(sun.getDate() + i);
+    const isToday = sameDay(dd, today);
+    headerHtml += `<div class="week-header-cell">
+      <div class="week-dow">${dows[i]}</div>
+      <div class="week-date${isToday?' today':''}" onclick="goToDate(${dd.getFullYear()},${dd.getMonth()},${dd.getDate()})">${dd.getDate()}</div>
+    </div>`;
+  }
+  document.getElementById('week-header').innerHTML = headerHtml;
+
+  let bodyHtml = '<div class="week-time-col">';
+  for (let h = 0; h < 24; h++) {
+    bodyHtml += `<div class="week-time-label">${h===0?'':h+':00'}</div>`;
+  }
+  bodyHtml += '</div>';
+
+  for (let i = 0; i < 7; i++) {
+    const dd = new Date(sun); dd.setDate(sun.getDate() + i);
+    const dateStr = fmtDate(dd);
+    const dayEvents = state.events.filter(e => !e.allDay && eventOnDate(e, dateStr));
+    bodyHtml += `<div class="week-day-col" onclick="cellClick('${dateStr}')">`;
+    for (let h = 0; h < 24; h++) bodyHtml += '<div class="week-hour-line"></div>';
+    dayEvents.forEach(e => {
+      const startDt = new Date(e.start);
+      const endDt = new Date(e.end);
+      const top = (startDt.getHours() + startDt.getMinutes()/60) * 48;
+      const height = Math.max(((endDt - startDt)/3600000) * 48, 20);
+      bodyHtml += `<div class="week-event" style="top:${top}px;height:${height}px;background:${e.color}" onclick="event.stopPropagation();showPopup('${e.id}',event)">${e.title}</div>`;
+    });
+    bodyHtml += '</div>';
+  }
+  document.getElementById('week-body').innerHTML = bodyHtml;
+  document.getElementById('week-body').scrollTop = 8 * 48;
+}
+
+function renderSchedule() {
+  const d = state.currentDate;
+  const year = d.getFullYear(), month = d.getMonth();
+  const days = new Date(year, month + 1, 0).getDate();
+  const dows = ['日','月','火','水','木','金','土'];
+  const today = state.today;
+  let html = '';
+  for (let day = 1; day <= days; day++) {
+    const dd = new Date(year, month, day);
+    const dateStr = fmtDate(dd);
+    const dayEvents = state.events.filter(e => eventOnDate(e, dateStr)).sort((a,b)=>a.start.localeCompare(b.start));
+    const isToday = sameDay(dd, today);
+    html += `<div class="schedule-day">
+      <div class="schedule-date-col">
+        <div class="schedule-dow">${dows[dd.getDay()]}</div>
+        <div class="schedule-day-num${isToday?' today':''}">${day}</div>
+      </div>
+      <div class="schedule-events">`;
+    if (dayEvents.length === 0) {
+      html += '<div class="schedule-no-events">予定なし</div>';
+    } else {
+      dayEvents.forEach(e => {
+        const timeStr = e.allDay ? '終日' : `${fmtTime(new Date(e.start))} – ${fmtTime(new Date(e.end))}`;
+        html += `<div class="schedule-event" onclick="showPopup('${e.id}',event)">
+          <div class="schedule-event-color" style="background:${e.color}"></div>
+          <div class="schedule-event-time">${timeStr}</div>
+          <div class="schedule-event-title">${e.title}</div>
+        </div>`;
+      });
+    }
+    html += '</div></div>';
+  }
+  document.getElementById('schedule-view').innerHTML = html;
+}
+
+// ===== MODAL =====
+function openAddModal(dateStr) {
+  state.editingEvent = null;
+  document.getElementById('modal-title').textContent = '予定を作成';
+  document.getElementById('delete-btn').classList.add('hidden');
+  document.getElementById('event-title').value = '';
+  const now = dateStr ? new Date(dateStr+'T00:00') : new Date();
+  document.getElementById('event-start-date').value = fmtDate(now);
+  document.getElementById('event-end-date').value = fmtDate(now);
+  document.getElementById('event-start-time').value = '09:00';
+  document.getElementById('event-end-time').value = '10:00';
+  document.getElementById('event-desc').value = '';
+  state.selectedColor = 'blueberry';
+  renderColorPicker();
+  document.getElementById('event-modal').classList.remove('hidden');
+}
+
+function openEditModal(ev) {
+  state.editingEvent = ev;
+  document.getElementById('modal-title').textContent = '予定を編集';
+  document.getElementById('delete-btn').classList.remove('hidden');
+  document.getElementById('event-title').value = ev.title;
+  const startDt = new Date(ev.start);
+  const endDt = new Date(ev.end);
+  document.getElementById('event-start-date').value = ev.allDay ? ev.start : fmtDate(startDt);
+  document.getElementById('event-end-date').value = ev.allDay ? ev.end : fmtDate(endDt);
+  document.getElementById('event-start-time').value = ev.allDay ? '09:00' : fmtTime(startDt);
+  document.getElementById('event-end-time').value = ev.allDay ? '10:00' : fmtTime(endDt);
+  document.getElementById('event-desc').value = ev.desc || '';
+  state.selectedColor = ev.colorId || 'blueberry';
+  renderColorPicker();
+  document.getElementById('event-modal').classList.remove('hidden');
+}
+
+function renderColorPicker() {
+  const html = COLORS.map(c =>
+    `<div class="color-dot${state.selectedColor===c.id?' selected':''}" style="background:${c.hex}" title="${c.name}" onclick="selectColor('${c.id}')"></div>`
+  ).join('');
+  document.getElementById('color-picker').innerHTML = html;
+}
+
+function selectColor(id) {
+  state.selectedColor = id;
+  renderColorPicker();
+}
+
+function closeModal() {
+  document.getElementById('event-modal').classList.add('hidden');
+}
+
+async function saveEvent() {
+  const title = document.getElementById('event-title').value.trim();
+  if (!title) { alert('タイトルを入力してください'); return; }
+  const ev = {
+    title,
+    startDate: document.getElementById('event-start-date').value,
+    endDate: document.getElementById('event-end-date').value,
+    startTime: document.getElementById('event-start-time').value,
+    endTime: document.getElementById('event-end-time').value,
+    desc: document.getElementById('event-desc').value,
+    colorId: state.selectedColor,
+    allDay: false,
+  };
+  closeModal();
+  if (state.editingEvent) {
+    await updateEvent(state.editingEvent.id, ev);
+  } else {
+    await createEvent(ev);
+  }
+}
+
+async function deleteEvent() {
+  if (!state.editingEvent) return;
+  if (!confirm('この予定を削除しますか？')) return;
+  closeModal();
+  await deleteEventById(state.editingEvent.id);
+}
+
+// ===== POPUP =====
+let popupEventId = null;
+function showPopup(id, ev) {
+  ev.stopPropagation();
+  popupEventId = id;
+  const e = state.events.find(e => e.id === id);
+  if (!e) return;
+  document.getElementById('popup-title-text').textContent = e.title;
+  document.getElementById('popup-color').style.background = e.color;
+  const timeStr = e.allDay ? '終日' : `${fmtDateTime(new Date(e.start))} – ${fmtTime(new Date(e.end))}`;
+  document.getElementById('popup-time').textContent = timeStr;
+  if (e.desc) {
+    document.getElementById('popup-desc').textContent = e.desc;
+    document.getElementById('popup-desc-row').classList.remove('hidden');
+  } else {
+    document.getElementById('popup-desc-row').classList.add('hidden');
+  }
+  const popup = document.getElementById('event-popup');
+  popup.classList.remove('hidden');
+  const rect = ev.target.getBoundingClientRect();
+  let top = rect.bottom + 8;
+  let left = rect.left;
+  if (left + 340 > window.innerWidth) left = window.innerWidth - 350;
+  if (top + 200 > window.innerHeight) top = rect.top - 208;
+  popup.style.top = top + 'px';
+  popup.style.left = left + 'px';
+}
+
+function closePopup() {
+  document.getElementById('event-popup').classList.add('hidden');
+  popupEventId = null;
+}
+
+function openEditFromPopup() {
+  const e = state.events.find(e => e.id === popupEventId);
+  closePopup();
+  if (e) openEditModal(e);
+}
+
+async function deleteEventFromPopup() {
+  if (!confirm('この予定を削除しますか？')) return;
+  const id = popupEventId;
+  closePopup();
+  await deleteEventById(id);
+}
+
+// ===== NAVIGATION =====
+function navigate(dir) {
+  const d = state.currentDate;
+  if (state.view === 'month' || state.view === 'schedule') {
+    state.currentDate = new Date(d.getFullYear(), d.getMonth() + dir, 1);
+  } else {
+    state.currentDate = new Date(d.getTime() + dir * 7 * 86400000);
+  }
+  fetchEvents();
+}
+
+function goToday() {
+  state.currentDate = new Date(state.today);
+  fetchEvents();
+}
+
+function goToDate(y, m, d) {
+  state.currentDate = new Date(y, m, d);
+  fetchEvents();
+}
+
+function miniNav(dir) {
+  const d = state.currentDate;
+  state.currentDate = new Date(d.getFullYear(), d.getMonth() + dir, 1);
+  render();
+}
+
+function setView(v) {
+  state.view = v;
+  ['month','week','schedule'].forEach(id => {
+    document.getElementById('btn-'+id).classList.toggle('active', id===v);
+  });
+  fetchEvents();
+}
+
+function cellClick(dateStr) {
+  openAddModal(dateStr);
+}
+
+// ===== UTILS =====
+function fmtDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function fmtTime(d) {
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function fmtDateTime(d) {
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  return `${months[d.getMonth()]}${d.getDate()}日 ${fmtTime(d)}`;
+}
+function sameDay(a, b) {
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+function eventOnDate(e, dateStr) {
+  if (e.allDay) {
+    return e.start <= dateStr && e.end > dateStr;
+  } else {
+    return e.start.startsWith(dateStr) || e.end.startsWith(dateStr);
+  }
+}
+
+// Close popup on outside click
+document.addEventListener('click', (ev) => {
+  const popup = document.getElementById('event-popup');
+  if (!popup.classList.contains('hidden') && !popup.contains(ev.target)) {
+    closePopup();
+  }
+});
+
+// ===== INIT =====
+async function init() {
+  const loggedIn = await handleCallback();
+  const hasToken = loggedIn || localStorage.getItem('gc_refresh');
+  if (hasToken) {
+    if (!loggedIn) await refreshAccessToken();
+    if (state.accessToken) {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('auth-btn').classList.add('hidden');
+      document.getElementById('auth-status').textContent = '✓ ログイン済み';
+      await fetchEvents();
+    } else {
+      document.getElementById('auth-btn').textContent = '再ログイン';
+    }
+  }
+}
+
+init();
+</script>
+</body>
+</html>
